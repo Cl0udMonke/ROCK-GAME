@@ -3,35 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timed Rock Miner</title>
+    <title>Deep Core Miner</title>
     <style>
         :root {
-            --bg-color: #1a1a2e;
-            --panel-bg: #16213e;
-            --accent: #e94560;
-            --text: #ecf0f1;
-            --common: #bdc3c7;
-            --uncommon: #2ecc71;
-            --rare: #3498db;
-            --legendary: #f1c40f;
+            --bg-dark: #121418;
+            --panel-bg: #1e222d;
+            --panel-border: 1px solid rgba(255,255,255,0.1);
+            --primary: #6c5ce7;
+            --accent: #a29bfe;
+            --text-main: #e0e0e0;
+            
+            /* Rock Colors */
+            --rock-common: #8d99ae;
+            --rock-uncommon: #55efc4;
+            --rock-rare: #74b9ff;
+            --rock-legendary: #ffeaa7;
+
+            /* UI Colors */
+            --ui-success: #00b894;
+            --ui-danger: #d63031;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             margin: 0;
             overflow: hidden;
             user-select: none;
+            background-image: 
+                radial-gradient(circle at 1% 1%, rgba(255,255,255,0.03) 0%, transparent 1%),
+                radial-gradient(circle at 99% 100%, rgba(255,255,255,0.03) 0%, transparent 1%);
         }
 
+        /* Container & Layout */
         #game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* --- Screens --- */
         .screen {
             position: absolute;
             top: 0;
@@ -40,204 +54,320 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            background-color: var(--bg-color);
+            align-items: center;
             z-index: 10;
         }
 
         .hidden { display: none !important; }
 
-        /* --- HUD --- */
-        #hud {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none; /* Let clicks pass through to game */
-            z-index: 5;
+        /* Typography & Headings */
+        h1, h2 { 
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            margin-bottom: 30px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            background: linear-gradient(to bottom, #fff, #b2bec3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .hud-panel {
-            background: rgba(22, 33, 62, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid var(--accent);
-            text-align: center;
-        }
-
-        /* --- Rocks --- */
+        /* Rock Styling */
         .rock {
             position: absolute;
-            border-radius: 50%;
+            border-radius: 40%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: transform 0.1s;
+            box-shadow: 
+                inset 2px 2px 5px rgba(255,255,255,0.3),
+                inset -2px -2px 5px rgba(0,0,0,0.3),
+                0 10px 20px rgba(0,0,0,0.4);
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
             z-index: 20;
+            overflow: hidden;
+            background-size: cover;
+            border: 2px solid rgba(255,255,255,0.1);
         }
 
-        .rock:active { transform: scale(0.95); }
-
-        .rock.common { background-color: var(--common); color: #333; }
-        .rock.uncommon { background-color: var(--uncommon); color: #fff; border: 2px solid #a3e6cd; }
-        .rock.rare { background-color: var(--rare); color: #fff; border: 2px solid #74b9ff; box-shadow: 0 0 10px var(--rare);}
+        .rock:active { transform: scale(0.9) rotate(-5deg); filter: brightness(1.2); }
+        
+        /* Gradient Textures for Rocks */
+        .rock.common { background: radial-gradient(circle at 30% 30%, var(--rock-common), #2d3436); color: rgba(0,0,0,0.5); text-shadow: 0 -1px 0 rgba(0,0,0,0.5); }
+        .rock.uncommon { background: radial-gradient(circle at 30% 30%, var(--rock-uncommon), #00b894); color: white; box-shadow: 0 0 15px rgba(0,184,148,0.3);}
+        .rock.rare { background: radial-gradient(circle at 30% 30%, var(--rock-rare), #0984e3); color: white; box-shadow: 0 0 20px rgba(116,185,255,0.4); border-color: rgba(255,255,255,0.4);}
         .rock.legendary { 
-            background-color: var(--legendary); 
-            color: #333; 
-            border: 2px solid #f6e58d; 
-            box-shadow: 0 0 15px var(--legendary); 
-            transform: scale(1.1);
+            background: radial-gradient(circle at 30% 30%, var(--rock-legendary), #fdcb6e); 
+            color: #7f8c8d; 
+            box-shadow: 0 0 25px rgba(253,203,110,0.5); 
+            border-color: rgba(255,255,255,0.6);
+            font-family: 'Courier New', monospace;
         }
 
-        .rock.half { opacity: 0.6; filter: grayscale(0.5); border-color: rgba(0,0,0,0.3) !important; box-shadow: none;}
-
-        /* --- Upgrade Menu --- */
-        #upgrade-menu .panel {
-            width: 80%;
-            max-width: 600px;
-            background-color: var(--panel-bg);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.7);
-        }
-
-        h1, h2 { text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
-        
-        button {
-            background-color: var(--accent);
+        /* Rock Health UI */
+        .hp-badge {
+            position: absolute;
+            top: -15px;
+            right: -10px;
+            background: rgba(0,0,0,0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
             color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background 0.2s;
-            margin-top: 20px;
+            pointer-events: none;
         }
-        
-        button:hover { filter: brightness(1.2); }
-        button.secondary { background-color: #57606f; }
 
-        .upgrade-item {
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 40px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .hud-panel {
+            background: rgba(30, 34, 45, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 16px;
+            border: var(--panel-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .hud-panel span { display: block; font-size: 0.8rem; opacity: 0.7; margin-bottom: 5px;}
+        .hud-panel div { font-size: 1.8rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        /* Upgrade Menu Cards */
+        #upgrade-menu .panel {
+            width: 90%;
+            max-width: 600px;
+            background: var(--panel-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            backdrop-filter: blur(15px);
+            border: var(--panel-border);
+        }
+
+        .upgrade-card {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: rgba(255,255,255,0.05);
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            transition: transform 0.2s;
         }
 
-        .save-indicator { font-size: 12px; opacity: 0.7; margin-top: auto; }
+        .upgrade-card:hover {
+            background: rgba(255,255,255,0.07);
+            transform: translateY(-2px);
+        }
 
-        /* --- How To Play --- */
-        #guide-text { max-width: 600px; text-align: center; line-height: 1.6; margin-bottom: 20px;}
-        .tutorial-tip { font-style: italic; color: var(--uncommon); }
+        .upgrade-info h3 { margin: 0; font-size: 1rem; color: var(--text-main); }
+        .upgrade-info small { display: block; color: var(--accent); margin-top: 4px; }
+
+        .buy-btn {
+            background: linear-gradient(135deg, var(--primary), #a29bfe);
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            transition: transform 0.1s, filter 0.2s;
+        }
+
+        .buy-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
+        .buy-btn:active { transform: scale(0.95); }
+        
+        /* Button disabled state */
+        .buy-btn:disabled {
+            background: #4a4e69;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .stats-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            pointer-events: none;
+            font-family: monospace;
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        /* Buttons */
+        button.main-btn {
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        button.main-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(108, 92, 231, 0.6);
+        }
+
+        .guide-text {
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        /* Click Ripple Effect */
+        .click-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.6);
+            transform: scale(0);
+            animation: rippleAnim 0.4s linear;
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim {
+            to { transform: scale(4); opacity: 0; }
+        }
 
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    
-    <!-- START / HUB SCREEN -->
+
+    <!-- START SCREEN -->
     <div id="start-screen" class="screen">
-        <h1 style="color:var(--accent)">Deep Core Miner</h1>
+        <h1 style="font-size: 3rem;">Deep Core Miner</h1>
         
-        <div id="save-indicator" class="save-indicator"></div>
-        <div id="save-content" class="panel hidden" style="position:absolute; top:20px; background:var(--panel-bg); padding:10px; border-radius:5px; width:300px; text-align:left;">
-            <!-- Dynamic Save Content -->
+        <div class="stats-overlay">
+            SAVE FILE: <span id="save-status">LOADING...</span><br>
+            VERSION: V2.0
         </div>
 
-        <button onclick="startRun()" id="btn-start-run">Start Mining</button>
-        
-        <div style="margin-top:20px;" class="secondary-btn-container">
-            <button class="secondary" id="btn-load-save">Load Save</button>
+        <div style="position:absolute; top:50px; right:30px; z-index:100;">
+             <!-- Save Manager UI -->
+            <button class="buy-btn" id="btn-load-save" style="padding: 8px 16px; font-size: 0.9rem; background:#57606f">Load Saved Run</button>
         </div>
 
-        <h2 style="font-size: 1.5rem; margin-top:30px;">How to Play</h2>
-        <p>You have <strong>60 seconds</strong> to mine as much ore as possible.</p>
-        <ul style="text-align:left; list-style:none; padding-left:0;">
-            <li>Tap rocks to destroy them instantly (Small) or deal damage.</li>
-            <li><span class="tutorial-tip">Common:</span> 1 Tap, 5 Points</li>
-            <li><span class="tutorial-tip">Uncommon:</span> 2 Taps, 10 Points</li>
-            <li><span class="tutorial-tip">Rare:</span> 3 Taps, 25 Points (Fast)</li>
-            <li><span class="tutorial-tip">Legendary:</span> 4 Taps, 50 Points (Slow)</li>
-        </ul>
-        <p>After time ends, buy upgrades to run longer and earn more!</p>
+        <button class="main-btn" onclick="startRun()">Start Mining</button>
+
+        <div id="guide-box" style="margin-top:30px; opacity: 0.9; transition: opacity 1s;">
+            <div class="guide-text">
+                <strong>How to Play:</strong><br>
+                Tap rocks to break them.<br>
+                • <span style="color:var(--rock-common)">Common</span>: Low value, breaks instantly<br>
+                • <span style="color:var(--rock-uncommon)">Uncommon</span>: Medium value (2 hits)<br>
+                • <span style="color:var(--rock-rare)">Rare</span>: High value (3 hits)<br>
+                • <span style="color:var(--rock-legendary)">Legendary</span>: Super rare! Massive points (4 hits)
+            </div>
+        </div>
     </div>
 
-    <!-- GAME HUD -->
+    <!-- HUD -->
     <div id="hud" class="hidden">
         <div class="hud-panel">
-            <div style="font-size: 1.2rem;">⏱️ Time</div>
-            <div id="timer-display" style="font-size: 2rem; color: var(--accent);">60s</div>
+            <span>⏱️ Time Left</span>
+            <div id="timer-display" style="color: #ff7675;">60.0s</div>
         </div>
+        
         <div class="hud-panel">
-            <div style="font-size: 1.2rem;">💰 Points</div>
-            <div id="score-display" style="font-size: 2rem;">0</div>
+            <span>💎 Points Earned</span>
+            <div id="score-display" style="color: var(--ui-success);">0</div>
         </div>
     </div>
 
     <!-- UPGRADE MENU -->
     <div id="upgrade-menu" class="screen hidden">
+        <h1>Mining Complete!</h1>
+        
         <div class="panel">
-            <h1>Run Complete!</h1>
-            <p style="font-size: 1.2rem;">Total Points: <span id="final-score-upg"></span></p>
-            
-            <div class="upgrade-item" onclick="buyUpgrade('time')">
-                <div>
-                    <strong>+ Time per Run</strong><br>
-                    <small>Current: <span id="curr-time">1.0x</span></small>
-                </div>
-                <button>COST: $<span id="cost-time">100</span></button>
+            <div style="text-align:center; margin-bottom:20px;">
+                <span style="font-size:4rem;">💎</span><br>
+                <strong>Total Points:</strong> <span id="final-score-upg"></span>
             </div>
 
-            <div class="upgrade-item" onclick="buyUpgrade('value')">
-                <div>
-                    <strong>+ Value per Rock</strong><br>
-                    <small>Current: <span id="curr-value">1.0x</span></small>
+            <!-- Upgrade 1: Time -->
+            <div class="upgrade-card" onclick="buyUpgrade('time')">
+                <div class="upgrade-info">
+                    <h3>+ Mining Duration</h3>
+                    <small>Extend the timer by 5 seconds</small>
+                    <br>
+                    <span id="curr-time-desc" style="color:var(--accent)">Current: +0s</span>
                 </div>
-                <button>COST: $<span id="cost-value">100</span></button>
+                <button class="buy-btn" id="btn-upg-time">
+                    Cost: <span id="cost-time">$150</span>
+                </button>
             </div>
 
-            <div class="upgrade-item" onclick="buyUpgrade('rarity')">
-                <div>
-                    <strong>+ Rare Drop Rate</strong><br>
-                    <small>Current: <span id="curr-rarity">25%</span></small>
+            <!-- Upgrade 2: Rock Value -->
+            <div class="upgrade-card" onclick="buyUpgrade('value')">
+                <div class="upgrade-info">
+                    <h3>+ Global Value</h3>
+                    <small>All rocks are worth more</small>
+                    <br>
+                    <span id="curr-value-desc" style="color:var(--accent)">Current: 1.0x Multiplier</span>
                 </div>
-                <button>COST: $<span id="cost-rarity">100</span></button>
+                <button class="buy-btn" id="btn-upg-value">
+                    Cost: <span id="cost-value">$250</span>
+                </button>
             </div>
 
-            <div class="upgrade-item" onclick="buyUpgrade('click')">
-                <div>
-                    <strong>+ Click Power</strong><br>
-                    <small>Current: <span id="curr-click">5%</span></small>
+             <!-- Upgrade 3: Rare Drops -->
+             <div class="upgrade-card" onclick="buyUpgrade('rarity')">
+                <div class="upgrade-info">
+                    <h3>+ Rare Rock Rate</h3>
+                    <small>Increase odds of rare drops</small>
+                    <br>
+                    <span id="curr-rarity-desc" style="color:var(--accent)">Current Chance: 25%</span>
                 </div>
-                <button>COST: $<span id="cost-click">100</span></button>
+                <button class="buy-btn" id="btn-upg-rarity">
+                    Cost: <span id="cost-rarity">$300</span>
+                </button>
             </div>
 
-            <p class="save-indicator" id="auto-save-msg"></p>
-        </div>
-    </div>
+            <!-- NEW Upgrade 4: Spawn Count -->
+             <div class="upgrade-card" onclick="buyUpgrade('spawnCount')">
+                <div class="upgrade-info">
+                    <h3>+ Rock Spawns</h3>
+                    <small>Add more rocks to the field</small>
+                    <br>
+                    <span id="curr-spawn-desc" style="color:var(--accent)">Current Count: 50 Rocks</span>
+                </div>
+                <button class="buy-btn" id="btn-upg-spawn">
+                    Cost: <span id="cost-spawn">$400</span>
+                </button>
+            </div>
 
-    <!-- HOW TO PLAY (Overlay on HUD) -->
-    <div id="guide-overlay" class="screen hidden" style="background: rgba(0,0,0,0.5);">
-        <div class="panel" onclick="document.getElementById('guide-overlay').classList.add('hidden')">
-            <h2>Quick Guide</h2>
-            <p><span class="common">#</span> Common (1 Tap)</p>
-            <p><span class="uncommon">#</span> Uncommon (2 Taps)</p>
-            <p><span class="rare">#</span> Rare (3 Taps - Fast)</p>
-            <p><span class="legendary">#</span> Legendary (4 Taps)</p>
-            <button onclick="document.getElementById('guide-overlay').classList.add('hidden')">Got it!</button>
+            <p style="text-align:center; font-size:0.8rem; color:#636e72; margin-top:10px;">Press "Start Mining" to play again</p>
         </div>
     </div>
 
@@ -245,24 +375,27 @@
 
 <script>
 /** 
- * Game Logic
+ * Game Logic 
  */
 const GAME_STATE = {
     running: false,
     score: 0,
     startTime: null,
     endTime: null,
+    rocksOnScreen: [], // To keep track of DOM elements and cleanup
+    
     upgrades: {
-        timeMult: 1.0,      // Multiplier for run duration (60s base)
-        valueMult: 1.0,     // Global points multiplier
-        rarityChance: 0.25, // Base chance for Rare (+ adds Uncommon/Legendary logic)
-        clickDamage: 0.0    // Fraction of HP removed per click
+        timeBonus: 0,       // Extra seconds to add
+        valueMultiplier: 1.0, // Points multiplier (e.g., +5% per buy)
+        baseRarityChance: 0.25, // Chances for Rare/Uncommon/Legendary
+        maxRocks: 30        // Number of rocks spawned before stop
     },
+
     costs: {
-        time: 100,
-        value: 100,
-        rarity: 100,
-        click: 100
+        time: 150,
+        value: 250,
+        rarity: 300,
+        spawnCount: 400
     }
 };
 
@@ -272,63 +405,38 @@ const screens = {
     game: document.getElementById('hud'),
     upgrades: document.getElementById('upgrade-menu')
 };
-const scoreEl = document.getElementById('score-display');
-const timerEl = document.getElementById('timer-display');
-const finalScoreUpg = document.getElementById('final-score-upg');
 
-// Rock Types Configuration
+// Configuration for Rock Types
 const ROCK_TYPES = {
-    common:  { color: 'var(--common)', hp: 1, cost: 5, maxHealth: 1, class: 'common' },
-    uncommon:{ color: 'var(--uncommon)', hp: 2, cost: 10, maxHealth: 2, class: 'uncommon' },
-    rare:    { color: 'var(--rare)',     hp: 3, cost: 25, maxHealth: 3, class: 'rare' },
-    legendary:{color: 'var(--legendary)',hp: 4, cost: 50, maxHealth: 4, class: 'legendary'}
+    common:  { name: "Common",   hp: 1, baseScore: 5, color: 'common' },
+    uncommon:{ name: "Uncommon", hp: 2, baseScore: 10, color: 'uncommon' },
+    rare:    { name: "Rare",     hp: 3, baseScore: 25, color: 'rare' },
+    legendary:{name: "Legendary",hp: 4, baseScore: 50, color: 'legendary'}
 };
 
-// --- Initialization & Helpers ---
+// --- Initialization & UI Helpers ---
 
 function init() {
-    // Check for save
+    // Check for save file
     const savedGame = localStorage.getItem('rockMinerSave');
     
     if (savedGame) {
         try {
             const parsed = JSON.parse(savedGame);
             applyUpgrades(parsed.upgrades);
+            document.getElementById('save-status').innerText = "SAVED";
         } catch(e) {
-            console.error("Save file corrupted", e);
+            console.error("Corrupt save", e);
         }
+    } else {
+        document.getElementById('save-status').innerText = "NEW RUN";
     }
-
-    // Auto-save every 10 seconds or when changing screens roughly
-    setInterval(() => {
-        if(gameState.running) saveGame();
-    }, 5000);
 
     // Event Listeners
     document.getElementById('btn-load-save').addEventListener('click', loadGame);
-    
-    // Start Screen Buttons
-    document.getElementById('save-indicator')
-        .innerHTML = `Last Save: ${savedGame ? 'Yes' : 'No'}`;
-        
-    const saveContent = document.getElementById('save-content');
-    if(savedGame) {
-        saveContent.classList.remove('hidden');
-        saveContent.innerHTML = `
-            <h3>Save Data</h3>
-            <p>Click here to Load.</p>
-            <button onclick="loadGame()">Load This Save</button>
-        `;
-    } else {
-        saveContent.classList.add('hidden');
-    }
 
-    // Guide Toggle
-    document.getElementById('btn-start-run').addEventListener('click', () => {
-        if(!gameState.running) {
-            toggleGuide();
-        }
-    });
+    // Initial Setup for stats text
+    updateHUD();
 }
 
 // --- Game Loop Logic ---
@@ -337,192 +445,183 @@ function startRun() {
     screens.start.classList.add('hidden');
     screens.game.classList.remove('hidden');
     
-    // Reset Stats for this run (Score doesn't carry over in same run, just upgrades)
+    // Reset Stats for this run
     GAME_STATE.score = 0;
+    GAME_STATE.rocksOnScreen = [];
+    
     updateHUD();
 
-    // Base Time is 60s, scaled by upgrade
-    const baseTimeSeconds = 60;
-    const gameDurationMs = baseTimeSeconds * 1000 * GAME_STATE.upgrades.timeMult;
+    const baseTime = 60;
+    GAME_STATE.endTime = Date.now() + (baseTime * 1000) + (GAME_STATE.upgrades.timeBonus * 1000);
     
-    GAME_STATE.endTime = Date.now() + gameDurationMs;
     GAME_STATE.running = true;
 
+    // Start Spawning Loop
     spawnLoop();
 }
 
 function spawnLoop() {
     if (!GAME_STATE.running) return;
 
-    const spawnRate = 400; // ms between spawns (adjustable)
-    if(Math.random() < 0.1 && Date.now() > GAME_STATE.endTime) { 
-        gameOver(); 
-        return;
+    const now = Date.now();
+    
+    // Stop spawning if time is almost up (grace period 2s) or rocks limit reached
+    if (now >= GAME_STATE.endTime - 2000) { 
+        // Just wait a bit for current rocks to be clicked before freezing
+        // We'll let the loop finish naturally but we won't spawn new ones
+    } else if (GAME_STATE.rocksOnScreen.length >= GAME_STATE.upgrades.maxRocks) {
+         // Spawn limit reached, wait a bit then try again
     }
 
-    if(Date.now() >= GAME_STATE.endTime) {
-        gameOver();
-        return;
+    // Calculate probability of spawning another rock based on time left
+    const timeLeft = Math.max(0, (GAME_STATE.endTime - now) / 1000);
+    
+    // Spawning logic: Chance decreases slightly over time to keep pace, 
+    // but mostly controlled by the limit counter.
+    let spawnChance = 0.15; 
+
+    if (Math.random() < spawnChance) {
+        createRock();
     }
 
-    createRock();
-
-    setTimeout(spawnLoop, spawnRate);
+    setTimeout(spawnLoop, 200); // Tick rate
 }
 
 function createRock() {
-    const now = Date.now();
-    // Calculate rarity based on upgrade chance (0 to 1)
-    // We use a simple weighted approach modified by the 'rarityChance' variable
+    if (GAME_STATE.rocksOnScreen.length >= GAME_STATE.upgrades.maxRocks) return;
+
+    const rockDiv = document.createElement('div');
+    
+    // Determine Type based on Rarity Upgrades
     let roll = Math.random();
-    
-    // Rarity weights logic:
-    // Base Rare Chance is in upgrades.
-    // Let's make it so rarityChance 0.25 means 25% chance to be RARE or better, 
-    // and the rest are COMMON. 
-    // Inside Common/Uncommon split can be handled by spawn rate or pure random.
-    
     let rarityTier = 'common';
 
-    if (roll < GAME_STATE.upgrades.rarityChance) {
-        rarityTier = roll < 0.5 ? 'uncommon' : 'rare';
+    // Weighted Random Generator
+    if (roll < GAME_STATE.upgrades.baseRarityChance) {
+        rarityTier = roll < 0.65 ? 'uncommon' : 'rare';
     } else if (rarityTier === 'common') {
-         // Occasionally throw a legendary even in common slots?
+         // Chance for legendary slip through
          if(Math.random() > 0.98) rarityTier = 'legendary';
     }
 
-    const rockDiv = document.createElement('div');
-    rockDiv.classList.add('rock', ROCK_TYPES[rarityTier].class);
+    const rockConfig = ROCK_TYPES[rarityTier];
     
-    // Positioning
-    const maxW = window.innerWidth - 40;
-    const maxH = window.innerHeight - 100;
-    rockDiv.style.width = (Math.random() * 80 + 60) + 'px'; // Random size
-    rockDiv.style.height = rockDiv.style.width;
-    rockDiv.style.left = Math.random() * (maxW - rockDiv.offsetWidth) + 'px';
-    rockDiv.style.top = Math.random() * (maxH - rockDiv.offsetHeight) + 'px';
+    rockDiv.classList.add('rock', rockConfig.color);
+    
+    // Random Position
+    const maxW = window.innerWidth - 60;
+    const maxH = window.innerHeight - 150;
+    rockDiv.style.width = (Math.random() * 90 + 70) + 'px';
+    rockDiv.style.height = rockDiv.style.width; // Keep circular aspect
+    
+    // Random rotation for "randomness" look
+    const rotX = Math.random() * 2 - 1; 
+    const rotY = Math.random() * 2 - 1;
+    rockDiv.style.transform = `rotate(${Math.random()*360}deg)`;
 
-    // Value scaling
-    let pointsPerRock = ROCK_TYPES[rarityTier].cost;
+    rockDiv.style.left = (Math.random() * maxW) + 'px';
+    rockDiv.style.top = (Math.random() * maxH) + 'px';
+
+    // Rock Data Attributes
+    rockDiv.dataset.hp = rockConfig.hp;
+    rockDiv.dataset.type = rarityTier;
     
-    // Rock Interaction
+    // Initial HP Text Badge
+    const hpBadge = document.createElement('div');
+    hpBadge.className = 'hp-badge';
+    hpBadge.innerText = rockConfig.hp;
+    rockDiv.appendChild(hpBadge);
+
+    // Interaction
     rockDiv.addEventListener('mousedown', (e) => {
         if (!GAME_STATE.running) return;
         
         // Visual Click Feedback
-        const ripple = document.createElement('div');
-        ripple.style.position = 'absolute';
-        ripple.style.top = '0'; ripple.style.left = '0';
-        ripple.style.width = '100%'; ripple.style.height = '100%';
-        ripple.style.borderRadius = '50%';
-        ripple.style.transform = 'scale(0)';
-        ripple.style.backgroundColor = 'white';
-        ripple.style.animation = 'ripple 0.4s linear'; // Standard CSS keyframe needed or inline
-        rockDiv.appendChild(ripple);
+        createRipple(e.target, e.clientX, e.clientY);
 
-        handleRockClick(e, rockDiv, pointsPerRock);
+        handleRockClick(rockDiv, rockConfig);
     });
 
     document.body.appendChild(rockDiv);
+    GAME_STATE.rocksOnScreen.push(rockDiv);
 }
 
-function handleRockClick(e, el, rawValue) {
+function handleRockClick(el, config) {
     if (!GAME_STATE.running) return;
     
-    // Calculate effective value with upgrades (points are multiplied)
-    let finalVal = Math.floor(rawValue * GAME_STATE.upgrades.valueMult);
-    
-    // Apply click damage
-    const damage = 1 + (GAME_STATE.upgrades.clickDamage * finalVal); 
+    // Calculate effective score for this run
+    let finalScore = Math.floor(config.baseScore * GAME_STATE.upgrades.valueMultiplier);
     
     // Visual Shake
-    el.style.transform = 'translateX(5px)';
-    setTimeout(() => el.style.transform = 'translateX(-5px)', 50);
+    el.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        if(el.parentNode) el.style.transform = el.dataset.prevTransform || ''; 
+    }, 50);
 
-    if (damage >= el.dataset.hp) {
-        // Destroy rock immediately (if small health) or half life visual?
-        // Prompt: "higher chance for rarer rocks to appear".
-        // Logic: Rarer rocks have higher HP. 
-        if (GAME_STATE.upgrades.clickDamage > 0.5 && damage >= el.dataset.hp * GAME_STATE.upgrades.clickDamage / 0.1) {
-             // Actually, logic is simpler: Just deduct HP visually.
-        }
-    }
+    const hpElem = el.querySelector('.hp-badge');
     
-    // Visual feedback of health bar roughly
-    const hpDisplay = document.createElement('span');
-    hpDisplay.innerText = el.dataset.hp - damage; // Wait, simple clicker style?
-    // Re-reading prompt: "take multiple clicks".
-    // Let's do standard RPG HP logic.
-
-    // Recalculate HP for this run (scaling?) or fixed? 
-    // Usually mining games scale values. Let's scale max HP slightly to prevent infinite clicking if not intended, 
-    // but usually fixed stats is better for upgrades "Value per rock".
-    // Actually, let's keep stats fixed in object but just multiply points.
-
-    // Visual Health UI (The numbers inside the rock)
-    const hpText = el.querySelector('.hp-text');
-    if(!hpText) {
-        hpTextEl = document.createElement('div');
-        hpTextEl.classList.add('hp-text');
-        hpTextEl.style.position = 'absolute';
-        hpTextEl.style.fontSize = (el.offsetWidth / 3) + 'px';
-        hpTextEl.style.color = '#000';
-        hpTextEl.style.fontWeight = 'bold';
-        hpTextEl.style.textShadow = '0 1px 2px #fff';
-        el.appendChild(hpTextEl);
-    }
-
-    const currentHpInt = parseInt(el.dataset.hp) || ROCK_TYPES[rarityTier].hp;
-    
-    if (damage > currentHpInt) {
-        // One hit kill logic or full drain? 
-        // Let's assume "Clicking" removes a portion.
-        const remaining = Math.max(0, currentHpInt - damage);
+    if (finalScore >= config.hp) {
+        // Destroy Logic
+        GAME_STATE.score += finalScore;
+        updateHUD();
         
-        // If fully destroyed
-        if (remaining <= 0) {
-            GAME_STATE.score += finalVal;
-            el.remove();
-            updateHUD();
-        } else {
-            // Update Visual HP
-            // For visual scaling of the rock based on damage taken:
-            const pct = 1 - (damage / currentHpInt);
-            el.style.transform = `scale(${0.8 + pct * 0.2})`; // Shrink slightly as damaged
-            
-            // Color change for damage
-            if(pct < 0.5) el.style.opacity = "0.4";
-        }
-
-        // Set the displayed HP text (Simple integer math is easiest for this demo)
-        hpTextEl.innerText = remaining;
-        
+        // Animate destruction
+        el.style.transform = 'scale(2) rotate(180deg)';
+        el.style.opacity = '0';
+        setTimeout(() => {
+            if(el.parentNode) el.remove();
+            cleanupRock(el);
+        }, 300);
     } else {
-        // Damage taken, not dead
-         const pct = 1 - (damage / currentHpInt);
-         el.style.transform = `scale(${0.8 + pct * 0.2})`;
-         if(pct < 0.5) el.style.opacity = "0.4";
-         
-         // If HP is a float, this logic gets messy for text. 
-         // Let's simplify: Rocks are either destroyed or have integer HP.
+        // Damage Logic
+        const currentHpInt = parseInt(hpElem.innerText);
+        hpElem.innerText = Math.max(1, currentHpInt - 1); // Cap damage at 1 for simplicity unless HP > 1
+        
+        // Update opacity for half-health effect (optional, simplified here)
     }
+}
 
+function createRipple(target, x, y) {
+    const rect = target.getBoundingClientRect();
+    const center = rect.left + rect.width / 2;
+    const top = rect.top + rect.height / 2;
+    
+    // Use mouse coordinates if available relative to screen, otherwise center of rock
+    const clickX = x - rect.left - rect.width/2;
+    const clickY = y - rect.top - rect.height/2;
+
+    const ripple = document.createElement('div');
+    ripple.classList.add('click-ripple');
+    ripple.style.left = (center + clickX) + 'px';
+    ripple.style.top = (top + clickY) + 'px';
+    
+    const size = Math.max(target.offsetWidth, target.offsetHeight) * 1.5;
+    ripple.style.width = size + 'px';
+    ripple.style.height = size + 'px';
+    
+    target.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 400);
+}
+
+function cleanupRock(el) {
+    const index = GAME_STATE.rocksOnScreen.indexOf(el);
+    if (index > -1) {
+        GAME_STATE.rocksOnScreen.splice(index, 1);
+    }
 }
 
 function updateHUD() {
-    scoreEl.innerText = GAME_STATE.score;
+    scoreEl.innerText = GAME_STATE.score.toLocaleString();
+    
     const remaining = Math.max(0, (GAME_STATE.endTime - Date.now()) / 1000).toFixed(1);
     timerEl.innerText = `${remaining}s`;
-}
-
-function gameOver() {
-    if (!GAME_STATE.running) return;
     
-    screens.game.classList.add('hidden');
-    screens.upgrades.classList.remove('hidden');
-    
-    finalScoreUpg.innerText = GAME_STATE.score.toLocaleString();
-    saveGame(); // Save on death
+    // Color change when running out of time
+    if (remaining < 5) {
+        timerEl.style.color = '#e74c3c';
+    } else {
+        timerEl.style.color = '#6c5ce7';
+    }
 }
 
 // --- Upgrade System ---
@@ -535,50 +634,54 @@ function buyUpgrade(type) {
         
         switch(type) {
             case 'time':
-                GAME_STATE.upgrades.timeMult += 0.5; // Add half a minute
-                document.getElementById('curr-time').innerText = GAME_STATE.upgrades.timeMult.toFixed(1);
+                GAME_STATE.upgrades.timeBonus += 5; // Add 5 seconds
+                document.getElementById('curr-time-desc').innerText = "Current: +" + GAME_STATE.upgrades.timeBonus + "s";
                 break;
             case 'value':
-                GAME_STATE.upgrades.valueMult += 0.2; // +20% value
-                document.getElementById('curr-value').innerText = (GAME_STATE.upgrades.valueMult * 100).toFixed(0) + '%';
+                GAME_STATE.upgrades.valueMultiplier += 0.1; // Add 10% value
+                let valStr = (GAME_STATE.upgrades.valueMultiplier * 10).toFixed(0) + '%';
+                document.getElementById('curr-value-desc').innerText = "Current: " + valStr + " Multiplier";
                 break;
             case 'rarity':
-                if(GAME_STATE.upgrades.rarityChance < 0.8) {
-                    GAME_STATE.upgrades.rarityChance += 0.1; // +10% chance
-                    document.getElementById('curr-rarity').innerText = (GAME_STATE.upgrades.rarityChance * 100).toFixed(0) + '%';
+                if(GAME_STATE.upgrades.baseRarityChance < 0.8) { // Cap at 80% base chance
+                    GAME_STATE.upgrades.baseRarityChance += 0.1;
+                    document.getElementById('curr-rarity-desc').innerText = "Current Chance: " + (GAME_STATE.upgrades.baseRarityChance*100).toFixed(0) + "%";
                 }
                 break;
-            case 'click':
-                GAME_STATE.upgrades.clickDamage += 0.05; // More power
-                document.getElementById('curr-click').innerText = (GAME_STATE.upgrades.clickDamage * 100).toFixed(0) + '%';
+            case 'spawnCount':
+                GAME_STATE.upgrades.maxRocks += 30; // Add 30 more rocks capacity
+                document.getElementById('curr-spawn-desc').innerText = "Current Count: " + GAME_STATE.upgrades.maxRocks;
                 break;
         }
 
         updateCosts();
-        
-        // Visual shake effect on the button
-        const btn = event.target; // The specific button clicked
-        btn.style.backgroundColor = '#4cd137'; // Green for success
-        setTimeout(() => {
-            if(document.body.contains(btn)) btn.style.backgroundColor = ''; // Reset
-        }, 300);
     } else {
         alert("Not enough points!");
     }
 }
 
 function updateCosts() {
-    document.getElementById('cost-time').innerText = Math.floor(GAME_STATE.costs.time * GAME_STATE.upgrades.valueMult); // Costs scale with value? No, costs usually independent or scale linearly. Let's make them harder.
-    GAME_STATE.costs.time *= 1.5;
-    GAME_STATE.costs.value += 20;
-    GAME_STATE.costs.rarity += 50;
-    GAME_STATE.costs.click += 30;
+    // Exponential cost scaling logic could go here, but linear is fine for this demo
+    GAME_STATE.costs.time += 100;
+    GAME_STATE.costs.value += 150;
+    GAME_STATE.costs.rarity += 200;
+    GAME_STATE.costs.spawnCount += 300;
 
-    // Update DOM text for costs
-    document.getElementById('cost-time').innerText = Math.floor(GAME_STATE.costs.time);
-    document.getElementById('cost-value').innerText = GAME_STATE.costs.value;
-    document.getElementById('cost-rarity').innerText = GAME_STATE.costs.rarity;
-    document.getElementById('cost-click').innerText = GAME_STATE.costs.click;
+    // Update DOM
+    document.getElementById('cost-time').innerText = `$${GAME_STATE.costs.time}`;
+    document.getElementById('cost-value').innerText = `$${GAME_STATE.costs.value}`;
+    document.getElementById('cost-rarity').innerText = `$${GAME_STATE.costs.rarity}`;
+    document.getElementById('cost-spawn').innerText = `$${GAME_STATE.costs.spawnCount}`;
+}
+
+function gameOver() {
+    if (!GAME_STATE.running) return;
+    
+    screens.game.classList.add('hidden'); // Hide HUD
+    screens.upgrades.classList.remove('hidden'); // Show Upgrade Menu
+    
+    finalScoreUpg.innerText = GAME_STATE.score.toLocaleString();
+    saveGame();
 }
 
 // --- Save/Load System ---
@@ -586,16 +689,21 @@ function updateCosts() {
 function saveGame() {
     const saveObj = {
         upgrades: GAME_STATE.upgrades,
-        costs: GAME_STATE.costs
+        costs: GAME_STATE.costs // We don't reset costs to base in load, we keep progress hard? No, usually you want to keep costs.
     };
-    localStorage.setItem('rockMinerSave', JSON.stringify(saveObj));
     
-    // Update UI if open to Upgrade screen
-    const msg = document.getElementById('auto-save-msg');
-    if(!screens.upgrades.classList.contains('hidden')) {
-         msg.innerText = "Game Saved!";
-         msg.style.color = "#2ecc71";
+    // Only store what changed if wanted, but full dump is safer for simple games
+    localStorage.setItem('rockMinerSave', JSON.stringify(saveObj));
+}
+
+function applyUpgrades(upgData) {
+    for(let key in upgData) {
+        GAME_STATE.upgrades[key] = upgData[key];
     }
+    
+    // Update cost display to reflect loaded state (scaled from base costs)
+    // Re-calculate base costs based on multipliers? No, keep costs as stored.
+    updateCosts();
 }
 
 function loadGame() {
@@ -604,53 +712,28 @@ function loadGame() {
         try {
             const data = JSON.parse(raw);
             applyUpgrades(data.upgrades);
-            alert("Save Loaded! Ready to run?");
             
-            // Start immediately or go back to menu?
-            // Let's just start immediately for a "restart" feel.
-            screens.start.classList.add('hidden');
-            screens.game.classList.remove('hidden');
-            GAME_STATE.running = true;
-            updateHUD();
-            spawnLoop();
-        } catch(e) { alert("Error loading save"); }
+            // Reset UI states for new run
+            document.getElementById('save-status').innerText = "SAVED";
+            
+            // Start the game with loaded stats
+            startRun();
+            
+        } catch(e) { alert("Error loading save data"); }
     } else {
         alert("No save file found.");
     }
 }
 
-function applyUpgrades(upgData) {
-    for(let key in upgData) {
-        GAME_STATE.upgrades[key] = upgData[key];
-    }
-    // Costs don't load, they reset to base difficulty or scale? 
-    // Let's keep costs scaling logic independent of save file (progressive difficulty is better than resetting cost scaling).
-    
-    updateCosts();
-    updateHUD();
-}
+// Global Variables for UI References
+const scoreEl = document.getElementById('score-display');
+const timerEl = document.getElementById('timer-display');
+const finalScoreUpg = document.getElementById('final-score-upg');
 
-// --- Guide Toggle ---
-function toggleGuide() {
-    const guide = document.getElementById('guide-overlay');
-    if(guide.classList.contains('hidden')) {
-        guide.classList.remove('hidden');
-    } else {
-        guide.classList.add('hidden');
-    }
-}
+// Polyfill for styles animation if needed (Standard ripple is CSS here)
 
-// Polyfill for styles
-const styleSheet = document.createElement("style");
-styleSheet.innerText = `
-@keyframes ripple {
-  to { transform: scale(4); opacity: 0; }
-}
-`;
-document.head.appendChild(styleSheet);
-
-// Start
-init();
+// Start Init
+window.onload = init;
 
 </script>
 </body>
