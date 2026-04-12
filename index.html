@@ -233,7 +233,7 @@
         <div class="panel">
             <p style="margin-bottom: 20px;">Total Points Earned: <span id="final-score-upg" style="color: var(--accent-gold); font-weight:bold; font-size: 1.5rem;">0</span></p>
 
-            <button class="main-btn" style="margin-bottom: 20px; padding: 12px 30px; font-size: 1.2rem;" onclick="continueRun()">Continue Run (New Game)</button>
+            <button class="main-btn" style="margin-bottom: 20px; padding: 12px 30px; font-size: 1.2rem;" onclick="continueRun()">Continue Run</button>
 
             <div class="upgrade-item" onclick="buyUpgrade('time')">
                 <div class="upgrade-info">
@@ -261,7 +261,7 @@
                 <div class="upgrade-info">
                     <h3>⚡ Spawn Speed</h3>
                     <small>Rocks appear faster</small>
-                    <span id="curr-spawn-desc" style="color:#6c5ce7; font-size:0.8rem;">Current Speed: 1200ms</span>
+                    <span id="curr-spawn-desc" style="color:#6c5ce7; font-size:0.8rem;">Current Speed: 400ms</span>
                 </div>
                 <button class="buy-btn" id="btn-upg-spawn">
                     $<span id="cost-spawn">400</span>
@@ -303,7 +303,7 @@ const ROCK_TYPES = {
 };
 
 const BASE_TIME_SECONDS = 8;
-const DEFAULT_SPAWN_DELAY = 1200; 
+const DEFAULT_SPAWN_DELAY = 400; 
 
 const STATE = {
     running: false,
@@ -397,6 +397,7 @@ function startRun() {
     setTimeout(endRun, totalTimeMs);
     
     updateHUD();
+    startSpawningLoop(); // Fixed: properly start spawn loop
 }
 
 function continueRun() {
@@ -610,22 +611,25 @@ function updateHUD() {
     dom.scoreEl.innerText = Math.floor(STATE.score).toLocaleString();
 }
 
-let spawnTimer = null;
-let rocksSpawnedCount = 0;
+// Fixed: Properly manage spawn loop state
+let spawnInterval = null;
 
-function spawnLoop() {
-    if (!STATE.running) return;
-
+function startSpawningLoop() {
+    if (spawnInterval) clearInterval(spawnInterval);
+    
+    rocksSpawnedCount = 0;
     const delay = STATE.upgrades.spawnDelay;
     
-    setTimeout(() => {
-        if(STATE.running && dom.hud.classList.contains('hidden')) return;
+    spawnInterval = setInterval(() => {
+        if(!STATE.running || dom.hud.classList.contains('hidden')) return;
         
         createRock();
         rocksSpawnedCount++;
-        
-        spawnLoop();
     }, delay);
+}
+
+function stopSpawningLoop() {
+    if (spawnInterval) clearInterval(spawnInterval);
 }
 
 setInterval(() => {
