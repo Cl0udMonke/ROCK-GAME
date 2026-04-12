@@ -11,11 +11,10 @@
             --primary: #6c5ce7;
             --accent-gold: #ffeaa7;
             
-            /* Rock Colors - Rarity System */
-            --common-color: #636e72;      /* Grey/Brown */
-            --uncommon-color: #00b894;    /* Green */
-            --rare-color: #0984e3;        /* Blue */
-            --legendary-color: #fdcb6e;   /* Gold */
+            --common-color: #636e72;
+            --uncommon-color: #00b894;
+            --rare-color: #0984e3;
+            --legendary-color: #fdcb6e;
 
             --hud-height: 80px;
         }
@@ -34,7 +33,6 @@
             touch-action: manipulation;
         }
 
-        /* --- Game Container & Screens --- */
         #game-container {
             position: relative;
             width: 100%;
@@ -56,7 +54,6 @@
 
         .hidden { display: none !important; }
 
-        /* --- HUD (Heads Up Display) --- */
         #hud {
             position: absolute;
             top: 0;
@@ -86,12 +83,6 @@
         .hud-label { font-size: 0.8rem; opacity: 0.7; display: block; margin-bottom: 4px; }
         .hud-value { font-size: 1.5rem; font-weight: bold; letter-spacing: 1px; }
 
-        /* --- Rock Styling --- */
-        .rock-container {
-            position: absolute;
-            transform-origin: center;
-        }
-
         .rock {
             width: 80px;
             height: 80px;
@@ -104,7 +95,6 @@
             font-size: 1rem;
             color: rgba(0,0,0,0.6);
             text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-            
             background-color: #fff; 
             box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.4);
             transition: transform 0.05s;
@@ -119,7 +109,6 @@
 
         .rock:active { transform: scale(0.9); }
 
-        /* Rock Health Badge */
         .hp-badge {
             position: absolute;
             bottom: -8px;
@@ -134,7 +123,6 @@
             white-space: nowrap;
         }
 
-        /* --- UI Buttons & Menus --- */
         h1 { 
             font-size: 3rem; 
             text-align: center; 
@@ -161,7 +149,6 @@
 
         .main-btn:active { transform: scale(0.95); }
 
-        /* Upgrade Menu Cards */
         #upgrade-menu .panel {
             width: 90%;
             max-width: 600px;
@@ -204,7 +191,6 @@
             box-shadow: none;
         }
 
-        /* Mobile Responsive */
         @media (max-width: 600px) {
             h1 { font-size: 2rem; margin-bottom: 10px; }
             .hud-panel { min-width: 80px; padding: 8px 15px; }
@@ -217,8 +203,6 @@
 <body>
 
 <div id="game-container">
-
-    <!-- START SCREEN -->
     <div id="start-screen" class="screen">
         <h1 style="font-size: 3rem;">Deep Core<br><span style="font-size:0.6em; color:#ccc;">Miner</span></h1>
         
@@ -231,7 +215,6 @@
         <div id="load-indicator" style="position: absolute; top: 20px; right: 20px; opacity: 0.5;">LOAD SAVE</div>
     </div>
 
-    <!-- HUD (Playing Screen) -->
     <div id="hud" class="screen hidden">
         <div class="hud-panel">
             <span class="hud-label">⏱️ TIME</span>
@@ -244,17 +227,14 @@
         </div>
     </div>
 
-    <!-- UPGRADE MENU -->
     <div id="upgrade-menu" class="screen hidden">
         <h1 style="font-size: 2rem;">Run Complete!</h1>
         
         <div class="panel">
             <p style="margin-bottom: 20px;">Total Points Earned: <span id="final-score-upg" style="color: var(--accent-gold); font-weight:bold; font-size: 1.5rem;">0</span></p>
 
-            <!-- Continue Run Button -->
             <button class="main-btn" style="margin-bottom: 20px; padding: 12px 30px; font-size: 1.2rem;" onclick="continueRun()">Continue Run (New Game)</button>
 
-            <!-- Upgrade 1: Time -->
             <div class="upgrade-item" onclick="buyUpgrade('time')">
                 <div class="upgrade-info">
                     <h3>⏱️ More Time</h3>
@@ -266,7 +246,6 @@
                 </button>
             </div>
 
-            <!-- Upgrade 2: Rock Value -->
             <div class="upgrade-item" onclick="buyUpgrade('value')">
                 <div class="upgrade-info">
                     <h3>💎 Global Bonus</h3>
@@ -278,8 +257,7 @@
                 </button>
             </div>
 
-             <!-- Upgrade 3: Spawn Rate -->
-             <div class="upgrade-item" onclick="buyUpgrade('spawnRate')">
+            <div class="upgrade-item" onclick="buyUpgrade('spawnRate')">
                 <div class="upgrade-info">
                     <h3>⚡ Spawn Speed</h3>
                     <small>Rocks appear faster</small>
@@ -290,8 +268,7 @@
                 </button>
             </div>
 
-             <!-- Upgrade 4: Max Rocks -->
-             <div class="upgrade-item" onclick="buyUpgrade('maxRocks')">
+            <div class="upgrade-item" onclick="buyUpgrade('maxRocks')">
                 <div class="upgrade-info">
                     <h3>📦 Rock Capacity</h3>
                     <small>Mine more rocks at once (Cap)</small>
@@ -302,8 +279,7 @@
                 </button>
             </div>
 
-             <!-- Upgrade 5: Click Power -->
-             <div class="upgrade-item" onclick="buyUpgrade('clickPower')">
+            <div class="upgrade-item" onclick="buyUpgrade('clickPower')">
                 <div class="upgrade-info">
                     <h3>🔨 Mining Gloves</h3>
                     <small>Break rocks faster (Damage)</small>
@@ -316,15 +292,9 @@
 
         </div>
     </div>
-
 </div>
 
 <script>
-/** 
- * Game Logic 
- */
-
-// --- Constants & Config ---
 const ROCK_TYPES = {
     common:  { name: "Common",   hp: 1, baseScore: 5 },
     uncommon:{ name: "Uncommon", hp: 2, baseScore: 10 },
@@ -332,14 +302,13 @@ const ROCK_TYPES = {
     legendary:{name: "Legendary",hp: 4, baseScore: 60 } 
 };
 
-// Base Stats - Starting values for new games
 const BASE_TIME_SECONDS = 8;
 const DEFAULT_SPAWN_DELAY = 1200; 
 
-// --- Game State Object ---
 const STATE = {
     running: false,
     score: 0,
+    rocksOnScreen: [],
     
     upgrades: {
         timeBonus: 0,      
@@ -358,7 +327,6 @@ const STATE = {
     }
 };
 
-// DOM Elements
 const dom = {
     startScreen: document.getElementById('start-screen'),
     hud: document.getElementById('hud'),
@@ -380,14 +348,7 @@ const dom = {
     costClick: document.getElementById('cost-click')
 };
 
-// --- Initialization & Save ---
-
 function init() {
-    checkSave();
-    renderCosts();
-}
-
-function checkSave() {
     const raw = localStorage.getItem('rockMinerSave');
     if (raw) {
         try {
@@ -404,6 +365,7 @@ function checkSave() {
     } else {
         dom.loadInd.style.display = 'none';
     }
+    renderCosts();
 }
 
 function saveGame() {
@@ -419,10 +381,9 @@ function saveGame() {
     setTimeout(() => msg.remove(), 1000);
 }
 
-// --- Core Game Loop Logic ---
-
 function startRun() {
     STATE.score = 0;
+    STATE.rocksOnScreen = [];
     
     dom.startScreen.classList.add('hidden');
     dom.upgradesMenu.classList.add('hidden');
@@ -436,23 +397,16 @@ function startRun() {
     setTimeout(endRun, totalTimeMs);
     
     updateHUD();
-    spawnLoop();
 }
 
 function continueRun() {
-    // Reset to a new game state but keep upgrades!
-    STATE.running = false;
+    STATE.score = 0;
+    STATE.rocksOnScreen = [];
     
     dom.hud.classList.add('hidden');
     dom.upgradesMenu.classList.remove('hidden');
     
-    // Reset score counter for fresh run
-    STATE.score = 0;
-    
-    // Keep all upgrades intact
-    
     updateHUD();
-    spawnLoop();
 }
 
 function endRun() {
@@ -463,52 +417,8 @@ function endRun() {
     dom.upgradesMenu.classList.remove('hidden');
     
     dom.finalScore.innerText = Math.floor(STATE.score);
-    
-    // Auto-save when run ends
     saveGame();
 }
-
-// --- Rock Spawning & Logic ---
-
-function spawnLoop() {
-    if (!STATE.running) return;
-
-    const delay = STATE.upgrades.spawnDelay;
-    
-    setTimeout(() => {
-        if(STATE.running && dom.hud.classList.contains('hidden')) return;
-        
-        // GUARANTEED: At least 3 rocks always spawn regardless of cap
-        if (STATE.rocksSpawned < 3 || dom.scoreEl.innerText !== STATE.score.toString().replace(/,/g, '')) {
-            createRock();
-            STATE.rocksSpawned++;
-        } else {
-            // Spawn remaining capacity worth rocks
-            const remainingSlots = STATE.upgrades.maxRocks - STATE.rocksOnScreen.length;
-            if (remainingSlots > 0) {
-                for(let i=0; i<Math.min(remainingSlots, 2); i++) {
-                    createRock();
-                    STATE.rocksSpawned++;
-                }
-            }
-        }
-        
-        spawnLoop();
-    }, delay);
-}
-
-let STATE = {
-    running: false,
-    score: 0,
-    rocksOnScreen: [],
-    rocksSpawned: 0
-};
-
-// Override with correct structure
-const stateOverride = {
-    rocksOnScreen: [],
-    rocksSpawned: 0
-};
 
 function createRock() {
     const rockDiv = document.createElement('div');
@@ -519,15 +429,12 @@ function createRock() {
     else if (rand < 0.40) type = 'rare';
     else if (rand < 0.70) type = 'uncommon';
     
-    const rockDiv = document.createElement('div');
     rockDiv.classList.add('rock', type);
     
     const maxWidth = window.innerWidth - 100;
     const maxHeight = window.innerHeight - dom.hud.offsetHeight - 50;
     
     const w = Math.min(Math.max(window.innerWidth, 200), maxWidth);
-    const h = window.innerHeight - dom.hud.offsetHeight; 
-    
     rockDiv.style.width = `${w}px`;
     rockDiv.style.height = `${w}px`;
     
@@ -637,8 +544,6 @@ function createRipple(target, event) {
     setTimeout(() => ripple.remove(), 300);
 }
 
-// --- Upgrades System ---
-
 function buyUpgrade(type) {
     const cost = STATE.costs[type];
     
@@ -682,7 +587,6 @@ function buyUpgrade(type) {
                 break;
         }
 
-        // COST SCALING: Based on rock points earned, cost scales with value multiplier
         STATE.costs[type] = Math.floor(cost * (1 + (STATE.upgrades.valueMultiplier - 1) * 0.5));
     } else {
         alert("Not enough points!");
@@ -706,7 +610,24 @@ function updateHUD() {
     dom.scoreEl.innerText = Math.floor(STATE.score).toLocaleString();
 }
 
-// --- Auto-save Timer ---
+let spawnTimer = null;
+let rocksSpawnedCount = 0;
+
+function spawnLoop() {
+    if (!STATE.running) return;
+
+    const delay = STATE.upgrades.spawnDelay;
+    
+    setTimeout(() => {
+        if(STATE.running && dom.hud.classList.contains('hidden')) return;
+        
+        createRock();
+        rocksSpawnedCount++;
+        
+        spawnLoop();
+    }, delay);
+}
+
 setInterval(() => {
     if(STATE.running) saveGame();
 }, 5000);
