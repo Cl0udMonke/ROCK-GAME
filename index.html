@@ -84,15 +84,15 @@
         .hud-value { font-size: 1.5rem; font-weight: bold; letter-spacing: 1px; }
 
         .rock {
-            width: 80px;
-            height: 80px;
-            border-radius: 45%;
+            width: 90px;
+            height: 90px;
+            border-radius: 48%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 1.2rem;
             color: rgba(0,0,0,0.6);
             text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
             background-color: #fff; 
@@ -100,12 +100,13 @@
             transition: transform 0.05s;
             z-index: 20;
             user-select: none;
+            margin-bottom: -5px; /* Slight overlap fix */
         }
 
-        .rock.common { background: linear-gradient(135deg, var(--common-color), #4a5568); color: rgba(0,0,0,0.5); border-bottom: 4px solid #2d3748; }
-        .rock.uncommon { background: linear-gradient(135deg, var(--uncommon-color), #008c70); color: white; border-bottom: 4px solid #00625a; }
-        .rock.rare { background: linear-gradient(135deg, var(--rare-color), #0369a1); color: white; border-bottom: 4px solid #025aa8; box-shadow: 0 0 15px rgba(9, 132, 227, 0.4); }
-        .rock.legendary { background: linear-gradient(135deg, var(--legendary-color), #e17055); color: #7f8c8d; border-bottom: 4px solid #c66a3b; box-shadow: 0 0 20px rgba(253, 203, 110, 0.6); font-family: 'Courier New', monospace;}
+        .rock.common { background: linear-gradient(135deg, var(--common-color), #4a5568); color: rgba(0,0,0,0.5); border-bottom: 5px solid #2d3748; }
+        .rock.uncommon { background: linear-gradient(135deg, var(--uncommon-color), #008c70); color: white; border-bottom: 5px solid #00625a; }
+        .rock.rare { background: linear-gradient(135deg, var(--rare-color), #0369a1); color: white; border-bottom: 5px solid #025aa8; box-shadow: 0 0 15px rgba(9, 132, 227, 0.4); }
+        .rock.legendary { background: linear-gradient(135deg, var(--legendary-color), #e17055); color: #7f8c8d; border-bottom: 5px solid #c66a3b; box-shadow: 0 0 20px rgba(253, 203, 110, 0.6); font-family: 'Courier New', monospace;}
 
         .rock:active { transform: scale(0.9); }
 
@@ -118,7 +119,8 @@
             color: white;
             padding: 2px 6px;
             border-radius: 10px;
-            font-size: 12px;
+            font-size: 14px;
+            font-weight: bold;
             pointer-events: none;
             white-space: nowrap;
         }
@@ -195,7 +197,7 @@
             h1 { font-size: 2rem; margin-bottom: 10px; }
             .hud-panel { min-width: 80px; padding: 8px 15px; }
             .hud-value { font-size: 1.2rem; }
-            .rock { width: 60px; height: 60px; font-size: 0.9rem; }
+            .rock { width: 70px; height: 70px; font-size: 1rem; }
         }
 
     </style>
@@ -233,7 +235,7 @@
         <div class="panel">
             <p style="margin-bottom: 20px;">Total Points Earned: <span id="final-score-upg" style="color: var(--accent-gold); font-weight:bold; font-size: 1.5rem;">0</span></p>
 
-            <button class="main-btn" style="margin-bottom: 20px; padding: 12px 30px; font-size: 1.2rem;" onclick="continueRun()">Continue Run</button>
+            <button class="main-btn" style="margin-bottom: 20px; padding: 12px 30px; font-size: 1.2rem;" onclick="continueRun()">Continue Run (New Game)</button>
 
             <div class="upgrade-item" onclick="buyUpgrade('time')">
                 <div class="upgrade-info">
@@ -315,7 +317,7 @@ const STATE = {
         valueMultiplier: 1.0, 
         spawnDelay: DEFAULT_SPAWN_DELAY, 
         maxRocks: 30,      
-        clickPower: 0.01   
+        clickPower: 0.05   // Increased starting power so rocks don't feel stuck
     },
 
     costs: {
@@ -397,7 +399,7 @@ function startRun() {
     setTimeout(endRun, totalTimeMs);
     
     updateHUD();
-    startSpawningLoop(); // Fixed: properly start spawn loop
+    startSpawningLoop(); 
 }
 
 function continueRun() {
@@ -406,6 +408,10 @@ function continueRun() {
     
     dom.hud.classList.add('hidden');
     dom.upgradesMenu.classList.remove('hidden');
+    
+    // Cleanup screen of any stray DOM elements from previous run
+    const rocks = document.querySelectorAll('.rock');
+    rocks.forEach(r => r.remove());
     
     updateHUD();
 }
@@ -416,6 +422,10 @@ function endRun() {
     
     dom.hud.classList.add('hidden');
     dom.upgradesMenu.classList.remove('hidden');
+    
+    // Cleanup screen of any stray DOM elements from previous run
+    const rocks = document.querySelectorAll('.rock');
+    rocks.forEach(r => r.remove());
     
     dom.finalScore.innerText = Math.floor(STATE.score);
     saveGame();
@@ -432,20 +442,33 @@ function createRock() {
     
     rockDiv.classList.add('rock', type);
     
-    const maxWidth = window.innerWidth - 100;
-    const maxHeight = window.innerHeight - dom.hud.offsetHeight - 50;
+    // SAFE ZONE CALCULATION: Keep within center area, away from HUD and edges
+    const maxW = window.innerWidth - 150;
+    const maxH = window.innerHeight - dom.hud.offsetHeight - 50;
     
-    const w = Math.min(Math.max(window.innerWidth, 200), maxWidth);
+    const w = Math.min(120, Math.max(maxW / 2, 80)); // Variable size but constrained
+    
+    // Center of screen logic
     rockDiv.style.width = `${w}px`;
     rockDiv.style.height = `${w}px`;
     
-    const posX = Math.random() * maxWidth;
-    const posY = Math.random() * maxHeight;
+    // Safe positioning: 
+    // Left padding: 20% of width (keeps away from left edge)
+    // Right padding: 20% of width (keeps away from right edge)
+    // Top padding: 50px (below HUD)
+    // Bottom padding: 15% of height (above bottom edge)
+    
+    const availableLeft = maxW * 0.4;
+    const availableTop = maxH * 0.5;
+    
+    const posX = Math.random() * availableLeft + (maxW - availableLeft) / 2; // Center horizontal distribution
+    const posY = Math.random() * availableTop + (maxH - availableTop) / 2; // Center vertical distribution
     
     rockDiv.style.left = `${posX}px`;
     rockDiv.style.top = `${posY}px`;
     
-    rockDiv.style.transform = `rotate(${(posX / maxWidth - 0.5) * 20}deg)`;
+    // Random rotation for visual interest
+    rockDiv.style.transform = `rotate(${Math.random() * 360}deg)`;
 
     const config = ROCK_TYPES[type];
     rockDiv.dataset.hp = config.hp;
@@ -473,6 +496,7 @@ function createRock() {
 }
 
 function applyDamage(rock, hp) {
+    // Click power percentage of HP
     const dmg = 1 + (STATE.upgrades.clickPower * hp * 0.9);
     
     rock.style.transform = `scale(0.9)`;
@@ -502,8 +526,8 @@ function updateHealth(element, currentHp) {
     badge.innerText = Math.ceil(currentHp);
     
     if (currentHp <= 1) {
-        element.style.opacity = '0.6';
-        element.style.filter = 'grayscale(50%) brightness(0.8)';
+        element.style.opacity = '0.5';
+        element.style.filter = 'grayscale(80%) brightness(0.7)';
     } else {
         element.style.opacity = '1';
         element.style.filter = 'none';
@@ -531,7 +555,7 @@ function createRipple(target, event) {
         top: ${centerY}px;
         width: ${size}px;
         height: ${size}px;
-        background: rgba(255,255,255,0.4);
+        background: rgba(255,255,255,0.6);
         pointer-events: none;
         animation: rippleAnim 0.3s ease-out forwards;
     `;
@@ -559,13 +583,13 @@ function buyUpgrade(type) {
                 break;
                 
             case 'value':
-                STATE.upgrades.valueMultiplier += 0.1;
-                dom.valueDesc.innerText = `Current Multiplier: ${STATE.upgrades.valueMultiplier}`;
+                STATE.upgrades.valueMultiplier += 0.15; // Slightly higher impact
+                dom.valueDesc.innerText = `Current Multiplier: ${STATE.upgrades.valueMultiplier.toFixed(2)}`;
                 break;
 
             case 'spawnRate':
-                if (STATE.upgrades.spawnDelay > 400) {
-                    STATE.upgrades.spawnDelay -= 300;
+                if (STATE.upgrades.spawnDelay > 300) {
+                    STATE.upgrades.spawnDelay -= 150; // Faster spawn speed, not delay
                     dom.spawnDesc.innerText = `Current Speed: ${STATE.upgrades.spawnDelay}ms`;
                 } else {
                     alert("Speed already maxed!");
@@ -574,21 +598,22 @@ function buyUpgrade(type) {
                 break;
 
             case 'maxRocks':
-                STATE.upgrades.maxRocks += 30;
+                STATE.upgrades.maxRocks += 20; // Increase cap
                 dom.maxDesc.innerText = `Current Cap: ${STATE.upgrades.maxRocks}`;
                 break;
 
             case 'clickPower':
-                if(STATE.upgrades.clickPower < 0.5) {
+                if(STATE.upgrades.clickPower < 1.0) { // Max out at breaking rocks instantly
                     STATE.upgrades.clickPower += 0.05;
                     dom.powerDesc.innerText = `Power: ${(STATE.upgrades.clickPower*100).toFixed(0)}%`;
                 } else {
-                    alert("Max power reached");
+                    alert("Max power reached!");
                 }
                 break;
         }
 
-        STATE.costs[type] = Math.floor(cost * (1 + (STATE.upgrades.valueMultiplier - 1) * 0.5));
+        // COST SCALING: Costs scale with value multiplier to keep balanced
+        STATE.costs[type] = Math.floor(cost * (1 + (STATE.upgrades.valueMultiplier - 1) * 0.8));
     } else {
         alert("Not enough points!");
     }
@@ -613,6 +638,7 @@ function updateHUD() {
 
 // Fixed: Properly manage spawn loop state
 let spawnInterval = null;
+let rocksSpawnedCount = 0;
 
 function startSpawningLoop() {
     if (spawnInterval) clearInterval(spawnInterval);
@@ -623,8 +649,14 @@ function startSpawningLoop() {
     spawnInterval = setInterval(() => {
         if(!STATE.running || dom.hud.classList.contains('hidden')) return;
         
-        createRock();
-        rocksSpawnedCount++;
+        // Prevent too many overlapping rocks
+        if(STATE.rocksOnScreen.length < STATE.upgrades.maxRocks) {
+            createRock();
+            rocksSpawnedCount++;
+            
+            // Optional: Cap total spawn count per run for balance (e.g., 60 rocks max)
+            // But we respect the rock capacity upgrade
+        }
     }, delay);
 }
 
